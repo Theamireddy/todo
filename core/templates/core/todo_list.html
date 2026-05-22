@@ -1,0 +1,159 @@
+{% extends 'core/base.html' %}
+
+{% block content %}
+<style>
+    .todo-form {
+        display: flex;
+        gap: 12px;
+        margin-bottom: 30px;
+    }
+    .todo-input {
+        flex: 1;
+        padding: 14px 20px;
+        border-radius: 16px;
+        border: 2px solid transparent;
+        background: rgba(255, 255, 255, 0.9);
+        box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+    .todo-input:focus {
+        border-color: var(--primary);
+        outline: none;
+        box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.1);
+    }
+    .todo-submit {
+        background: var(--primary);
+        color: white;
+        padding: 0 24px;
+        border-radius: 16px;
+        font-weight: 600;
+        font-size: 1rem;
+        box-shadow: 0 4px 14px rgba(99, 102, 241, 0.3);
+    }
+    .todo-submit:hover {
+        background: var(--primary-hover);
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(99, 102, 241, 0.4);
+    }
+    .todo-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+    }
+    .todo-item {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        background: white;
+        padding: 16px 20px;
+        border-radius: 16px;
+        box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .todo-item:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    }
+    .todo-item.completed {
+        opacity: 0.6;
+        background: #f9fafb;
+    }
+    .todo-item.completed .todo-title {
+        text-decoration: line-through;
+        color: var(--text-muted);
+    }
+    .todo-content {
+        display: flex;
+        align-items: center;
+        gap: 16px;
+        flex: 1;
+    }
+    .todo-title {
+        font-size: 1.05rem;
+        font-weight: 400;
+        transition: all 0.3s ease;
+    }
+    .todo-actions {
+        display: flex;
+        gap: 8px;
+    }
+    .btn-icon {
+        width: 36px;
+        height: 36px;
+        border-radius: 10px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: #f3f4f6;
+        color: var(--text-muted);
+    }
+    .btn-icon:hover {
+        background: #e5e7eb;
+        color: var(--text-main);
+    }
+    .btn-complete {
+        background: #e0f2fe;
+        color: #0284c7;
+    }
+    .btn-complete:hover {
+        background: #bae6fd;
+    }
+    .btn-delete {
+        background: #fee2e2;
+        color: #ef4444;
+    }
+    .btn-delete:hover {
+        background: #fecaca;
+    }
+    .empty-state {
+        text-align: center;
+        padding: 40px 0;
+        color: var(--text-muted);
+    }
+</style>
+
+<h1>My Tasks</h1>
+
+<form class="todo-form" action="{% url 'todo_create' %}" method="POST">
+    {% csrf_token %}
+    <input type="text" name="title" class="todo-input" placeholder="What needs to be done?" required autocomplete="off">
+    <button type="submit" class="todo-submit">Add</button>
+</form>
+
+<ul class="todo-list">
+    {% for todo in todos %}
+    <li class="todo-item {% if todo.completed %}completed{% endif %}">
+        <div class="todo-content">
+            <span class="todo-title">{{ todo.title }}</span>
+        </div>
+        <div class="todo-actions">
+            <form action="{% url 'todo_complete' todo.id %}" method="POST" style="margin:0;">
+                {% csrf_token %}
+                <button type="submit" class="btn-icon btn-complete" title="Toggle Complete">
+                    {% if todo.completed %}
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 14l2-2m0 0l2-2m-2 2l-2-2m2 2l2 2m7-2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                    {% else %}
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                    {% endif %}
+                </button>
+            </form>
+            <form action="{% url 'todo_delete' todo.id %}" method="POST" style="margin:0;">
+                {% csrf_token %}
+                <button type="submit" class="btn-icon btn-delete" title="Delete">
+                    <svg width="20" height="20" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                </button>
+            </form>
+        </div>
+    </li>
+    {% empty %}
+    <div class="empty-state">
+        <svg width="48" height="48" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" style="margin-bottom:16px;opacity:0.5;"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-6 9l2 2 4-4"></path></svg>
+        <p>No tasks yet. Add one above!</p>
+    </div>
+    {% endfor %}
+</ul>
+{% endblock %}
