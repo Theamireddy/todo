@@ -8,8 +8,9 @@ def todo_list(request):
 def todo_create(request):
     if request.method == 'POST':
         title = request.POST.get('title')
+        image = request.FILES.get('image')
         if title:
-            Todo.objects.create(title=title)
+            Todo.objects.create(title=title, image=image)
     return redirect('todo_list')
 
 def todo_complete(request, pk):
